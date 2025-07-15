@@ -17,7 +17,9 @@ import {
   Alert,
   AlertIcon,
   AlertTitle,
-  AlertDescription
+  AlertDescription,
+  Spinner,
+  Center
 } from '@chakra-ui/react'
 import { 
   CheckCircleIcon, 
@@ -29,14 +31,28 @@ import {
   SettingsIcon,
   CheckIcon
 } from '@chakra-ui/icons'
+import { suggestionsService } from '../services/suggestionsService.js'
 
 const ProgressTracker = () => {
   const [suggestions, setSuggestions] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
 
   useEffect(() => {
-    // Load suggestions from localStorage
-    const savedSuggestions = JSON.parse(localStorage.getItem('suggestions') || '[]')
-    setSuggestions(savedSuggestions)
+    const loadSuggestions = async () => {
+      try {
+        setLoading(true)
+        const data = await suggestionsService.getAllSuggestions()
+        setSuggestions(data)
+      } catch (err) {
+        console.error('Error loading suggestions:', err)
+        setError('Failed to load suggestions. Please try again later.')
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    loadSuggestions()
   }, [])
 
   // Deterministic status progression based on suggestion ID
@@ -52,7 +68,7 @@ const ProgressTracker = () => {
     ]
     
     // Use the suggestion ID to deterministically select a status
-    const hash = suggestionId.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0)
+    const hash = String(suggestionId).split('').reduce((acc, char) => acc + char.charCodeAt(0), 0)
     const statusIndex = hash % statuses.length
     return statuses[statusIndex]
   }
@@ -119,6 +135,38 @@ const ProgressTracker = () => {
     })
   }
 
+  if (loading) {
+    return (
+      <Container maxW="container.xl" py={8}>
+        <Center>
+          <VStack spacing={4}>
+            <Spinner size="xl" color="blue.500" />
+            <Text>Loading suggestions...</Text>
+          </VStack>
+        </Center>
+      </Container>
+    )
+  }
+
+  if (error) {
+    return (
+      <Container maxW="container.xl" py={8}>
+        <VStack spacing={6} align="stretch">
+          <Heading as="h1" size="xl" color="gray.800">
+            Progress Tracker
+          </Heading>
+          <Alert status="error">
+            <AlertIcon />
+            <Box>
+              <AlertTitle>Error loading suggestions!</AlertTitle>
+              <AlertDescription>{error}</AlertDescription>
+            </Box>
+          </Alert>
+        </VStack>
+      </Container>
+    )
+  }
+
   if (suggestions.length === 0) {
     return (
       <Container maxW="container.xl" py={8}>
@@ -172,7 +220,7 @@ const ProgressTracker = () => {
                         {suggestion.title}
                       </Heading>
                       <Text fontSize="sm" color="gray.500" mt={1}>
-                        Submitted on {formatDate(suggestion.timestamp)}
+                        Submitted on {formatDate(suggestion.created_at)}
                       </Text>
                     </Box>
                     <Badge 
@@ -248,7 +296,7 @@ const ProgressTracker = () => {
                           <Text fontSize="sm" color="gray.600">Suggestion submitted</Text>
                           <Spacer />
                           <Text fontSize="xs" color="gray.500">
-                            {formatDate(suggestion.timestamp)}
+                            {formatDate(suggestion.created_at)}
                           </Text>
                         </HStack>
                         
@@ -258,7 +306,7 @@ const ProgressTracker = () => {
                             <Text fontSize="sm" color="gray.600">Under review</Text>
                             <Spacer />
                             <Text fontSize="xs" color="gray.500">
-                              {formatDate(new Date(suggestion.timestamp).getTime() + 86400000)}
+                              {formatDate(new Date(suggestion.created_at).getTime() + 86400000)}
                             </Text>
                           </HStack>
                         )}
@@ -269,7 +317,7 @@ const ProgressTracker = () => {
                             <Text fontSize="sm" color="gray.600">Approved for development</Text>
                             <Spacer />
                             <Text fontSize="xs" color="gray.500">
-                              {formatDate(new Date(suggestion.timestamp).getTime() + 172800000)}
+                              {formatDate(new Date(suggestion.created_at).getTime() + 172800000)}
                             </Text>
                           </HStack>
                         )}
@@ -280,7 +328,7 @@ const ProgressTracker = () => {
                             <Text fontSize="sm" color="gray.600">In development</Text>
                             <Spacer />
                             <Text fontSize="xs" color="gray.500">
-                              {formatDate(new Date(suggestion.timestamp).getTime() + 259200000)}
+                              {formatDate(new Date(suggestion.created_at).getTime() + 259200000)}
                             </Text>
                           </HStack>
                         )}
@@ -291,7 +339,7 @@ const ProgressTracker = () => {
                             <Text fontSize="sm" color="gray.600">Testing phase</Text>
                             <Spacer />
                             <Text fontSize="xs" color="gray.500">
-                              {formatDate(new Date(suggestion.timestamp).getTime() + 345600000)}
+                              {formatDate(new Date(suggestion.created_at).getTime() + 345600000)}
                             </Text>
                           </HStack>
                         )}
@@ -302,7 +350,7 @@ const ProgressTracker = () => {
                             <Text fontSize="sm" color="gray.600">Successfully completed</Text>
                             <Spacer />
                             <Text fontSize="xs" color="gray.500">
-                              {formatDate(new Date(suggestion.timestamp).getTime() + 432000000)}
+                              {formatDate(new Date(suggestion.created_at).getTime() + 432000000)}
                             </Text>
                           </HStack>
                         )}
@@ -313,7 +361,7 @@ const ProgressTracker = () => {
                             <Text fontSize="sm" color="gray.600">Suggestion rejected</Text>
                             <Spacer />
                             <Text fontSize="xs" color="gray.500">
-                              {formatDate(new Date(suggestion.timestamp).getTime() + 172800000)}
+                              {formatDate(new Date(suggestion.created_at).getTime() + 172800000)}
                             </Text>
                           </HStack>
                         )}

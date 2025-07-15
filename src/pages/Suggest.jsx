@@ -14,6 +14,7 @@ import {
   Alert,
   AlertIcon
 } from '@chakra-ui/react'
+import { suggestionsService } from '../services/suggestionsService.js'
 
 const Suggest = () => {
   const [title, setTitle] = useState('')
@@ -22,7 +23,7 @@ const Suggest = () => {
   const [isSubmitted, setIsSubmitted] = useState(false)
   const toast = useToast()
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
     
     if (!title.trim() || !content.trim()) {
@@ -38,23 +39,14 @@ const Suggest = () => {
     setIsSubmitting(true)
 
     try {
-      // Get existing suggestions from localStorage
-      const existingSuggestions = JSON.parse(localStorage.getItem('suggestions') || '[]')
-      
       // Create new suggestion object
       const newSuggestion = {
-        id: Date.now().toString(),
         title: title.trim(),
-        content: content.trim(),
-        timestamp: new Date().toISOString(),
-        status: 'pending' // For ProgressTracker to parse
+        content: content.trim()
       }
       
-      // Add new suggestion to array
-      const updatedSuggestions = [...existingSuggestions, newSuggestion]
-      
-      // Save to localStorage
-      localStorage.setItem('suggestions', JSON.stringify(updatedSuggestions))
+      // Save to Supabase
+      await suggestionsService.createSuggestion(newSuggestion)
       
       // Reset form
       setTitle('')
@@ -69,6 +61,7 @@ const Suggest = () => {
         isClosable: true,
       })
     } catch (error) {
+      console.error('Error submitting suggestion:', error)
       toast({
         title: 'Error saving suggestion',
         description: 'Please try again later.',
