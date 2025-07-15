@@ -16,6 +16,13 @@ import {
     useBreakpointValue,
     useDisclosure,
     Image,
+    Avatar,
+    Menu,
+    MenuButton,
+    MenuList,
+    MenuItem,
+    MenuDivider,
+    useToast,
 } from '@chakra-ui/react'
 import {
     HamburgerIcon,
@@ -23,10 +30,45 @@ import {
     ChevronDownIcon,
     ChevronRightIcon,
 } from '@chakra-ui/icons'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
+import { useAuth } from '../contexts/AuthContext.jsx'
 
 const Navbar = () => {
     const { isOpen, onToggle } = useDisclosure()
+    const { user, signOut, loading } = useAuth()
+    const navigate = useNavigate()
+    const toast = useToast()
+
+    const handleSignOut = async () => {
+        try {
+            const { error } = await signOut()
+            if (error) {
+                toast({
+                    title: 'Error signing out',
+                    description: error.message,
+                    status: 'error',
+                    duration: 3000,
+                    isClosable: true,
+                })
+            } else {
+                toast({
+                    title: 'Signed out successfully',
+                    status: 'success',
+                    duration: 2000,
+                    isClosable: true,
+                })
+                navigate('/')
+            }
+        } catch (error) {
+            toast({
+                title: 'Error signing out',
+                description: 'Please try again.',
+                status: 'error',
+                duration: 3000,
+                isClosable: true,
+            })
+        }
+    }
 
     return (
         <Box>
@@ -74,23 +116,63 @@ const Navbar = () => {
                     direction={'row'}
                     align={'center'}
                     spacing={6}>
-                    <Button as={'a'} fontSize={'sm'} fontWeight={500} color={'gray.600'} variant={'link'} href={'#'}>
-                        Sign In
-                    </Button>
-                    <Button
-                        as={'a'}
-                        display={{ base: 'none', md: 'inline-flex' }}
-                        fontSize={'sm'}
-                        fontWeight={600}
-                        color={'white'}
-                        bg={'red.400'}
-                        border={'none'}
-                        href={'#'}
-                        _hover={{
-                            bg: 'red.300',
-                        }}>
-                        Sign Up
-                    </Button>
+                    {!loading && (
+                        user ? (
+                            <Menu>
+                                <MenuButton
+                                    as={Button}
+                                    rounded={'full'}
+                                    variant={'link'}
+                                    cursor={'pointer'}
+                                    minW={0}>
+                                    <Avatar
+                                        size={'sm'}
+                                        name={user.email}
+                                        src={user.user_metadata?.avatar_url}
+                                    />
+                                </MenuButton>
+                                <MenuList>
+                                    <MenuItem onClick={() => navigate('/profile')}>
+                                        Profile
+                                    </MenuItem>
+                                    <MenuItem onClick={() => navigate('/progress-tracker')}>
+                                        My Suggestions
+                                    </MenuItem>
+                                    <MenuDivider />
+                                    <MenuItem onClick={handleSignOut}>
+                                        Sign Out
+                                    </MenuItem>
+                                </MenuList>
+                            </Menu>
+                        ) : (
+                            <>
+                                <Button 
+                                    as={Link} 
+                                    to="/login"
+                                    fontSize={'sm'} 
+                                    fontWeight={500} 
+                                    color={'gray.600'} 
+                                    variant={'link'}
+                                >
+                                    Sign In
+                                </Button>
+                                <Button
+                                    as={Link}
+                                    to="/signup"
+                                    display={{ base: 'none', md: 'inline-flex' }}
+                                    fontSize={'sm'}
+                                    fontWeight={600}
+                                    color={'white'}
+                                    bg={'red.400'}
+                                    border={'none'}
+                                    _hover={{
+                                        bg: 'red.300',
+                                    }}>
+                                    Sign Up
+                                </Button>
+                            </>
+                        )
+                    )}
                 </Stack>
             </Flex>
 

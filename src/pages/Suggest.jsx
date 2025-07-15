@@ -15,12 +15,14 @@ import {
   AlertIcon
 } from '@chakra-ui/react'
 import { suggestionsService } from '../services/suggestionsService.js'
+import { useAuth } from '../contexts/AuthContext.jsx'
 
 const Suggest = () => {
   const [title, setTitle] = useState('')
   const [content, setContent] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isSubmitted, setIsSubmitted] = useState(false)
+  const { user } = useAuth()
   const toast = useToast()
 
   const handleSubmit = async (e) => {
@@ -89,7 +91,7 @@ const Suggest = () => {
           </Heading>
           <Alert status="success">
             <AlertIcon />
-            Your suggestion has been successfully submitted and saved to your browser's local storage.
+            Your suggestion has been successfully submitted and saved to Supabase.
           </Alert>
           <Text fontSize="lg" color="gray.600">
             You can track the progress of your suggestion in the{' '}

@@ -32,11 +32,13 @@ import {
   CheckIcon
 } from '@chakra-ui/icons'
 import { suggestionsService } from '../services/suggestionsService.js'
+import { useAuth } from '../contexts/AuthContext.jsx'
 
 const ProgressTracker = () => {
   const [suggestions, setSuggestions] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
+  const { user } = useAuth()
 
   useEffect(() => {
     const loadSuggestions = async () => {

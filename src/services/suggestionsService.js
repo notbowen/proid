@@ -1,12 +1,19 @@
 import { supabase } from '../lib/supabase.js'
 
 export const suggestionsService = {
-  // Get all suggestions
+  // Get all suggestions for the current user
   async getAllSuggestions() {
     try {
+      const { data: { user } } = await supabase.auth.getUser()
+      
+      if (!user) {
+        throw new Error('User not authenticated')
+      }
+
       const { data, error } = await supabase
         .from('suggestions')
         .select('*')
+        .eq('user_id', user.id)
         .order('created_at', { ascending: false })
       
       if (error) throw error
@@ -20,12 +27,19 @@ export const suggestionsService = {
   // Create a new suggestion
   async createSuggestion(suggestion) {
     try {
+      const { data: { user } } = await supabase.auth.getUser()
+      
+      if (!user) {
+        throw new Error('User not authenticated')
+      }
+
       const { data, error } = await supabase
         .from('suggestions')
         .insert([{
           title: suggestion.title,
           content: suggestion.content,
-          status: 'submitted'
+          status: 'submitted',
+          user_id: user.id
         }])
         .select()
       
