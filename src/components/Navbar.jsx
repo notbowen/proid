@@ -23,6 +23,7 @@ import {
     ChevronDownIcon,
     ChevronRightIcon,
 } from '@chakra-ui/icons'
+import { Link } from 'react-router-dom'
 
 const Navbar = () => {
     const { isOpen, onToggle } = useDisclosure()
@@ -51,15 +52,17 @@ const Navbar = () => {
                     />
                 </Flex>
                 <Flex flex={{ base: 1 }} justify={{ base: 'center', md: 'start' }} align="center">
-                    <Image
-                        src="https://isomer-user-content.by.gov.sg/87/1d6b5e88-2920-44fd-8fd0-91c4531352f8/dmp-sg60-03.webp"
-                        alt="URA Draft Master Plan 2025"
-                        maxH="48px"
-                        maxW="128px"
-                        objectFit="contain"
-                        objectPosition="center"
-                        mr={{ lg: 3 }}
-                    />
+                    <Link to="/">
+                        <Image
+                            src="https://isomer-user-content.by.gov.sg/87/1d6b5e88-2920-44fd-8fd0-91c4531352f8/dmp-sg60-03.webp"
+                            alt="URA Draft Master Plan 2025"
+                            maxH="48px"
+                            maxW="128px"
+                            objectFit="contain"
+                            objectPosition="center"
+                            mr={{ lg: 3 }}
+                        />
+                    </Link>
                     <Flex display={{ base: 'none', md: 'flex' }} ml={10} align="center">
                         <DesktopNav />
                     </Flex>
@@ -155,8 +158,8 @@ const DesktopNav = () => {
 const DesktopSubNav = ({ label, href, subLabel }) => {
     return (
         <Box
-            as="a"
-            href={href}
+            as={Link}
+            to={href}
             role={'group'}
             display={'block'}
             p={2}
@@ -204,8 +207,8 @@ const MobileNavItem = ({ label, children, href }) => {
         <Stack spacing={4} onClick={children && onToggle}>
             <Box
                 py={2}
-                as="a"
-                href={href ?? '#'}
+                as={href ? Link : 'div'}
+                to={href}
                 justifyContent="space-between"
                 alignItems="center"
                 _hover={{
@@ -235,7 +238,7 @@ const MobileNavItem = ({ label, children, href }) => {
                     align={'start'}>
                     {children &&
                         children.map((child) => (
-                            <Box as="a" key={child.label} py={2} href={child.href}>
+                            <Box as={Link} key={child.label} py={2} to={child.href}>
                                 {child.label}
                             </Box>
                         ))}
@@ -264,17 +267,17 @@ const NAV_ITEMS = [
             {
                 label: 'Interactive Map',
                 subLabel: 'Collaboratively build your dream Singapore',
-                href: '#',
+                href: '/interactive-map',
             },
             {
                 label: 'Suggest',
                 subLabel: 'Send in your suggestion to URA!',
-                href: '#',
+                href: '/suggest',
             },
             {
                 label: 'Progress Tracker',
                 subLabel: 'Track your suggestion\'s progress',
-                href: '#',
+                href: '/progress-tracker',
             },
         ],
     },
