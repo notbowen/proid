@@ -12,6 +12,10 @@ RUN bun install --frozen-lockfile
 # Copy source code
 COPY . .
 
+# Set environment variables (non-sensitive)
+ENV VITE_SUPABASE_URL=https://mopakysykyknaagzybxl.supabase.co
+ENV VITE_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1vcGFreXN5a3lrbmFhZ3p5YnhsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI1OTY3ODgsImV4cCI6MjA2ODE3Mjc4OH0.UPHB0DM_cocwQimkMMsS5WrWTmVxaKaXf_m2K6o7Vu4
+
 # Build the app
 RUN bun run build
 
