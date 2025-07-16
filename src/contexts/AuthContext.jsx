@@ -14,9 +14,19 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     // Get initial session
     const getSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession()
-      setUser(session?.user ?? null)
-      setLoading(false)
+      try {
+        const { data: { session }, error } = await supabase.auth.getSession()
+        console.log('AuthContext - Initial session:', { session, user: session?.user, error })
+        if (error) {
+          console.error('AuthContext - Session error:', error)
+        }
+        setUser(session?.user ?? null)
+        setLoading(false)
+      } catch (error) {
+        console.error('AuthContext - Error getting session:', error)
+        setUser(null)
+        setLoading(false)
+      }
     }
 
     getSession()
@@ -24,6 +34,7 @@ export const AuthProvider = ({ children }) => {
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
+        console.log('AuthContext - Auth state change:', { event, session, user: session?.user })
         setUser(session?.user ?? null)
         setLoading(false)
       }
@@ -77,6 +88,22 @@ export const AuthProvider = ({ children }) => {
     return { data, error }
   }
 
+  const refreshSession = async () => {
+    try {
+      const { data: { session }, error } = await supabase.auth.getSession()
+      console.log('AuthContext - Refreshed session:', { session, user: session?.user, error })
+      if (error) {
+        console.error('AuthContext - Session refresh error:', error)
+      }
+      setUser(session?.user ?? null)
+      return { session, error }
+    } catch (error) {
+      console.error('AuthContext - Error refreshing session:', error)
+      setUser(null)
+      return { session: null, error }
+    }
+  }
+
   const value = {
     user,
     loading,
@@ -86,6 +113,7 @@ export const AuthProvider = ({ children }) => {
     signOut,
     resetPassword,
     updatePassword,
+    refreshSession,
   }
 
   return (
