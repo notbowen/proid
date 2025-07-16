@@ -361,6 +361,11 @@ const NAV_ITEMS = [
                 subLabel: 'Track your suggestion\'s progress',
                 href: '/progress-tracker',
             },
+            {
+                label: 'AI Chatbot',
+                subLabel: 'Chat with our AI about URA and urban planning',
+                href: '/ai-chatbot',
+            },
         ],
     },
 ]
