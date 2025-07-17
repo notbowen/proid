@@ -75,6 +75,47 @@ const ProgressTracker = () => {
     return statuses[statusIndex]
   }
 
+  // Deterministic randomization for timeline dates
+  const getDeterministicDate = (suggestionId, stage, baseDate) => {
+    // Create a deterministic seed based on suggestion ID and stage
+    const seed = String(suggestionId) + stage
+    const hash = seed.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0)
+    
+    // Define realistic time ranges for each stage (in milliseconds)
+    const timeRanges = {
+      'under_review': { min: 2 * 24 * 60 * 60 * 1000, max: 7 * 24 * 60 * 60 * 1000 }, // 2-7 days
+      'approved': { min: 1 * 24 * 60 * 60 * 1000, max: 3 * 24 * 60 * 60 * 1000 }, // 1-3 days after review
+      'in_development': { min: 7 * 24 * 60 * 60 * 1000, max: 21 * 24 * 60 * 60 * 1000 }, // 1-3 weeks
+      'testing': { min: 3 * 24 * 60 * 60 * 1000, max: 10 * 24 * 60 * 60 * 1000 }, // 3-10 days
+      'completed': { min: 1 * 24 * 60 * 60 * 1000, max: 5 * 24 * 60 * 60 * 1000 }, // 1-5 days after testing
+      'rejected': { min: 1 * 24 * 60 * 60 * 1000, max: 5 * 24 * 60 * 60 * 1000 } // 1-5 days after review
+    }
+    
+    const range = timeRanges[stage]
+    if (!range) return baseDate
+    
+    // Use hash to deterministically select a time within the range
+    const randomFactor = (hash % 1000) / 1000 // 0 to 1
+    const timeOffset = range.min + (randomFactor * (range.max - range.min))
+    
+    return new Date(baseDate.getTime() + timeOffset)
+  }
+
+  // Get timeline dates for a suggestion
+  const getTimelineDates = (suggestionId, createdDate) => {
+    const baseDate = new Date(createdDate)
+    
+    return {
+      submitted: baseDate,
+      under_review: getDeterministicDate(suggestionId, 'under_review', baseDate),
+      approved: getDeterministicDate(suggestionId, 'approved', getDeterministicDate(suggestionId, 'under_review', baseDate)),
+      in_development: getDeterministicDate(suggestionId, 'in_development', getDeterministicDate(suggestionId, 'approved', getDeterministicDate(suggestionId, 'under_review', baseDate))),
+      testing: getDeterministicDate(suggestionId, 'testing', getDeterministicDate(suggestionId, 'in_development', getDeterministicDate(suggestionId, 'approved', getDeterministicDate(suggestionId, 'under_review', baseDate)))),
+      completed: getDeterministicDate(suggestionId, 'completed', getDeterministicDate(suggestionId, 'testing', getDeterministicDate(suggestionId, 'in_development', getDeterministicDate(suggestionId, 'approved', getDeterministicDate(suggestionId, 'under_review', baseDate))))),
+      rejected: getDeterministicDate(suggestionId, 'rejected', getDeterministicDate(suggestionId, 'under_review', baseDate))
+    }
+  }
+
   const getStatusColor = (status) => {
     const colors = {
       submitted: 'blue',
@@ -293,80 +334,88 @@ const ProgressTracker = () => {
                         Timeline
                       </Text>
                       <VStack spacing={2} align="stretch">
-                        <HStack spacing={3}>
-                          <Icon as={CheckCircleIcon} color="green.500" boxSize={4} />
-                          <Text fontSize="sm" color="gray.600">Suggestion submitted</Text>
-                          <Spacer />
-                          <Text fontSize="xs" color="gray.500">
-                            {formatDate(suggestion.created_at)}
-                          </Text>
-                        </HStack>
-                        
-                        {status !== 'submitted' && (
-                          <HStack spacing={3}>
-                            <Icon as={TimeIcon} color="yellow.500" boxSize={4} />
-                            <Text fontSize="sm" color="gray.600">Under review</Text>
-                            <Spacer />
-                            <Text fontSize="xs" color="gray.500">
-                              {formatDate(new Date(suggestion.created_at).getTime() + 86400000)}
-                            </Text>
-                          </HStack>
-                        )}
-                        
-                        {['approved', 'in_development', 'testing', 'completed'].includes(status) && (
-                          <HStack spacing={3}>
-                            <Icon as={CheckIcon} color="green.500" boxSize={4} />
-                            <Text fontSize="sm" color="gray.600">Approved for development</Text>
-                            <Spacer />
-                            <Text fontSize="xs" color="gray.500">
-                              {formatDate(new Date(suggestion.created_at).getTime() + 172800000)}
-                            </Text>
-                          </HStack>
-                        )}
-                        
-                        {['in_development', 'testing', 'completed'].includes(status) && (
-                          <HStack spacing={3}>
-                            <Icon as={SettingsIcon} color="purple.500" boxSize={4} />
-                            <Text fontSize="sm" color="gray.600">In development</Text>
-                            <Spacer />
-                            <Text fontSize="xs" color="gray.500">
-                              {formatDate(new Date(suggestion.created_at).getTime() + 259200000)}
-                            </Text>
-                          </HStack>
-                        )}
-                        
-                        {['testing', 'completed'].includes(status) && (
-                          <HStack spacing={3}>
-                            <Icon as={WarningIcon} color="orange.500" boxSize={4} />
-                            <Text fontSize="sm" color="gray.600">Testing phase</Text>
-                            <Spacer />
-                            <Text fontSize="xs" color="gray.500">
-                              {formatDate(new Date(suggestion.created_at).getTime() + 345600000)}
-                            </Text>
-                          </HStack>
-                        )}
-                        
-                        {status === 'completed' && (
-                          <HStack spacing={3}>
-                            <Icon as={StarIcon} color="green.500" boxSize={4} />
-                            <Text fontSize="sm" color="gray.600">Successfully completed</Text>
-                            <Spacer />
-                            <Text fontSize="xs" color="gray.500">
-                              {formatDate(new Date(suggestion.created_at).getTime() + 432000000)}
-                            </Text>
-                          </HStack>
-                        )}
-                        
-                        {status === 'rejected' && (
-                          <HStack spacing={3}>
-                            <Icon as={WarningIcon} color="red.500" boxSize={4} />
-                            <Text fontSize="sm" color="gray.600">Suggestion rejected</Text>
-                            <Spacer />
-                            <Text fontSize="xs" color="gray.500">
-                              {formatDate(new Date(suggestion.created_at).getTime() + 172800000)}
-                            </Text>
-                          </HStack>
-                        )}
+                        {(() => {
+                          const timelineDates = getTimelineDates(suggestion.id, suggestion.created_at)
+                          
+                          return (
+                            <>
+                              <HStack spacing={3}>
+                                <Icon as={CheckCircleIcon} color="green.500" boxSize={4} />
+                                <Text fontSize="sm" color="gray.600">Suggestion submitted</Text>
+                                <Spacer />
+                                <Text fontSize="xs" color="gray.500">
+                                  {formatDate(timelineDates.submitted)}
+                                </Text>
+                              </HStack>
+                              
+                              {status !== 'submitted' && (
+                                <HStack spacing={3}>
+                                  <Icon as={TimeIcon} color="yellow.500" boxSize={4} />
+                                  <Text fontSize="sm" color="gray.600">Under review</Text>
+                                  <Spacer />
+                                  <Text fontSize="xs" color="gray.500">
+                                    {formatDate(timelineDates.under_review)}
+                                  </Text>
+                                </HStack>
+                              )}
+                              
+                              {['approved', 'in_development', 'testing', 'completed'].includes(status) && (
+                                <HStack spacing={3}>
+                                  <Icon as={CheckIcon} color="green.500" boxSize={4} />
+                                  <Text fontSize="sm" color="gray.600">Approved for development</Text>
+                                  <Spacer />
+                                  <Text fontSize="xs" color="gray.500">
+                                    {formatDate(timelineDates.approved)}
+                                  </Text>
+                                </HStack>
+                              )}
+                              
+                              {['in_development', 'testing', 'completed'].includes(status) && (
+                                <HStack spacing={3}>
+                                  <Icon as={SettingsIcon} color="purple.500" boxSize={4} />
+                                  <Text fontSize="sm" color="gray.600">In development</Text>
+                                  <Spacer />
+                                  <Text fontSize="xs" color="gray.500">
+                                    {formatDate(timelineDates.in_development)}
+                                  </Text>
+                                </HStack>
+                              )}
+                              
+                              {['testing', 'completed'].includes(status) && (
+                                <HStack spacing={3}>
+                                  <Icon as={WarningIcon} color="orange.500" boxSize={4} />
+                                  <Text fontSize="sm" color="gray.600">Testing phase</Text>
+                                  <Spacer />
+                                  <Text fontSize="xs" color="gray.500">
+                                    {formatDate(timelineDates.testing)}
+                                  </Text>
+                                </HStack>
+                              )}
+                              
+                              {status === 'completed' && (
+                                <HStack spacing={3}>
+                                  <Icon as={StarIcon} color="green.500" boxSize={4} />
+                                  <Text fontSize="sm" color="gray.600">Successfully completed</Text>
+                                  <Spacer />
+                                  <Text fontSize="xs" color="gray.500">
+                                    {formatDate(timelineDates.completed)}
+                                  </Text>
+                                </HStack>
+                              )}
+                              
+                              {status === 'rejected' && (
+                                <HStack spacing={3}>
+                                  <Icon as={WarningIcon} color="red.500" boxSize={4} />
+                                  <Text fontSize="sm" color="gray.600">Suggestion rejected</Text>
+                                  <Spacer />
+                                  <Text fontSize="xs" color="gray.500">
+                                    {formatDate(timelineDates.rejected)}
+                                  </Text>
+                                </HStack>
+                              )}
+                            </>
+                          )
+                        })()}
                       </VStack>
                     </Box>
                   </VStack>
