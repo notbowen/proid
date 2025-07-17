@@ -24,7 +24,11 @@ function App() {
         <Navbar />
         <Routes>
           <Route path="/" element={<Home />} />
-          <Route path="/interactive-map" element={<InteractiveMap />} />
+          <Route path="/interactive-map" element={
+            <ProtectedRoute>
+              <InteractiveMap />
+            </ProtectedRoute>
+          } />
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
           <Route path="/auth/callback" element={<AuthCallback />} />
