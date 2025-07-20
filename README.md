@@ -1,4 +1,4 @@
-# ProID - Interactive Map of Singapore
+# ProID - ASG 2.1
 
 A collaborative platform for building your dream Singapore through an interactive map where users can add contributions with text, images, videos, and audio.
 
