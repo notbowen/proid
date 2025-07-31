@@ -23,7 +23,7 @@ const Home = () => {
           <Text fontSize="xl" color="gray.500">
             Check out our{' '}
             <a
-              href="https://www.figma.com/design/vJLiknb7zWrcL530jwlKvx/PROID-Asg3-Prototype?node-id=0-1&t=05713GNBJup8FQD0-1"
+              href="https://www.figma.com/proto/vJLiknb7zWrcL530jwlKvx/PROID-Asg3-Prototype?page-id=0%3A1&node-id=12-278&p=f&viewport=314%2C153%2C0.04&t=oYqKMAkA3Ux9gTAG-1&scaling=scale-down&content-scaling=fixed&starting-point-node-id=12%3A278"
               style={{
                 color: '#E53E3E',
                 textDecoration: 'underline',
